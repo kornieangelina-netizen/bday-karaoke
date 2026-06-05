@@ -819,11 +819,18 @@
     const db  = getFirestore(app);
     const col = collection(db, 'songs');
 
+    // ── Helpers (must be first — used everywhere) ─────────────────────────────
+    const $ = id => document.getElementById(id);
+
+    function esc(s) {
+      return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
     // ── Participants & avatars ────────────────────────────────────────────────
     const USERS = ['Лика', 'Ильнур', 'Ксюша', 'Илья', 'Юля', 'Вова', 'Вика'];
     const AVATARS = {
       'Лика': '👸', 'Ильнур': '🕺', 'Ксюша': '💅',
-      'Илья': '🤘', 'Юля': '🌸', 'Вова': '🐻', 'Вика': '🦋'
+      'Илья': '🤘', 'Юля': '🌸', 'Вова': '💻', 'Вика': '🦋'
     };
     const av = name => AVATARS[name] || '🎵';
 
@@ -851,13 +858,7 @@
     let curCover  = null;
     let sortInst  = null;
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-    const $ = id => document.getElementById(id);
-
-    function esc(s) {
-      return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
+    // ── More helpers ──────────────────────────────────────────────────────────
     function svcLabel(s)  { return ({spotify:'Spotify',apple:'Apple',yandex:'Яндекс',vk:'VK',other:'♪'})[s]||'♪'; }
     function svcEmoji(s)  { return ({spotify:'🟢',apple:'🔴',yandex:'🔴',vk:'🔵',other:'🎵'})[s]||'🎵'; }
 
