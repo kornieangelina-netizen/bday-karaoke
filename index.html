@@ -525,6 +525,116 @@
     .setup-notice p { font-size: 14px; color: var(--text-soft); max-width: 360px; line-height: 1.6; margin-bottom: 8px; }
     .setup-notice code { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
 
+    /* ─── Countdown ─────────────────────────────────────────────────── */
+    .countdown {
+      font-size: 11px;
+      color: var(--accent-hover);
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    /* ─── Avatar ─────────────────────────────────────────────────────── */
+    .avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent-light);
+      font-size: 13px;
+      flex-shrink: 0;
+      border: 1.5px solid var(--border);
+    }
+
+    .avatar-sm { width: 18px; height: 18px; font-size: 10px; }
+
+    .user-opt { display: flex; align-items: center; gap: 7px; }
+
+    /* ─── Liked-by popup ─────────────────────────────────────────────── */
+    .liked-by-popup {
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 0;
+      background: var(--text);
+      color: #fff;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 50;
+      pointer-events: none;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+    }
+
+    .liked-by-popup::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 12px;
+      border: 5px solid transparent;
+      border-top-color: var(--text);
+    }
+
+    .like-wrap { position: relative; display: inline-flex; }
+
+    /* ─── Comments ───────────────────────────────────────────────────── */
+    .comment-item {
+      display: flex;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .comment-item:last-child { border-bottom: none; }
+
+    .comment-body { flex: 1; min-width: 0; }
+    .comment-author { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .comment-text { font-size: 13px; color: var(--text-soft); line-height: 1.4; }
+    .comment-list { max-height: 220px; overflow-y: auto; margin-bottom: 14px; }
+    .comment-empty { font-size: 13px; color: var(--text-muted); text-align: center; padding: 16px 0; }
+
+    .comment-input-row { display: flex; gap: 8px; }
+    .comment-input-row .form-input { flex: 1; }
+    .send-btn {
+      padding: 9px 14px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--r-sm);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .send-btn:hover { background: var(--accent-hover); }
+
+    /* ─── Randomizer ─────────────────────────────────────────────────── */
+    .rand-body { padding: 24px 20px 28px; text-align: center; }
+
+    .rand-spin {
+      animation: rspin 0.08s steps(1) infinite;
+    }
+
+    @keyframes rspin {
+      0%   { opacity: 1; }
+      50%  { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+
+    .rand-emoji-big { font-size: 52px; margin-bottom: 10px; line-height: 1; }
+    .rand-title-big {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .rand-artist-big { font-size: 14px; color: var(--text-soft); margin-bottom: 6px; }
+    .rand-added { font-size: 12px; color: var(--text-muted); margin-top: 10px; }
+
     /* ─── Sortable ghost ─────────────────────────────────────────────── */
     .sortable-ghost { opacity: 0.3; }
     .sortable-drag { box-shadow: 0 8px 30px var(--shadow-md); }
@@ -553,6 +663,37 @@
         <div class="user-title">setlist ✦</div>
         <div class="user-sub">Привет! Кто ты?</div>
         <div class="user-grid" id="userGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Randomizer overlay -->
+  <div id="randOverlay" class="overlay hidden">
+    <div class="modal" style="max-width:340px">
+      <div class="modal-head">
+        <div class="modal-title">🎲 Рандом</div>
+        <button class="close-btn" id="randClose">✕</button>
+      </div>
+      <div class="rand-body" id="randBody">
+        <div class="rand-emoji-big">🎵</div>
+        <div class="rand-title-big">Крутим…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comments overlay -->
+  <div id="commOverlay" class="overlay hidden">
+    <div class="modal" style="max-width:380px">
+      <div class="modal-head">
+        <div class="modal-title" id="commTitle">Комментарии</div>
+        <button class="close-btn" id="commClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="comment-list" id="commList"></div>
+        <div class="comment-input-row">
+          <input id="commInput" type="text" class="form-input" placeholder="Написать…" maxlength="200">
+          <button id="commSend" class="send-btn">↑</button>
+        </div>
       </div>
     </div>
   </div>
@@ -622,8 +763,12 @@
     <div class="header-left">
       <div class="header-title">setlist ✦</div>
       <div class="header-sub" id="statsText">Ликин ДР</div>
+      <div class="countdown" id="countdown"></div>
     </div>
-    <button class="user-chip" id="userChip">···</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="user-chip" id="randBtn" title="Случайная песня">🎲</button>
+      <button class="user-chip" id="userChip">···</button>
+    </div>
   </header>
 
   <!-- Next up -->
@@ -674,8 +819,29 @@
     const db  = getFirestore(app);
     const col = collection(db, 'songs');
 
-    // ── Participants ──────────────────────────────────────────────────────────
+    // ── Participants & avatars ────────────────────────────────────────────────
     const USERS = ['Лика', 'Ильнур', 'Ксюша', 'Илья', 'Юля', 'Вова', 'Вика'];
+    const AVATARS = {
+      'Лика': '👸', 'Ильнур': '🕺', 'Ксюша': '💅',
+      'Илья': '🤘', 'Юля': '🌸', 'Вова': '🐻', 'Вика': '🦋'
+    };
+    const av = name => AVATARS[name] || '🎵';
+
+    // ── Birthday countdown ────────────────────────────────────────────────────
+    const BDAY = new Date('2026-06-11T00:00:00');
+    function tickCountdown() {
+      const diff = BDAY - new Date();
+      const el = $('countdown');
+      if (!el) return;
+      if (diff <= 0) { el.textContent = '🎉 Сегодня ДР!'; return; }
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      el.textContent = `🎂 ${d}д ${h}ч ${m}м ${s}с`;
+    }
+    tickCountdown();
+    setInterval(tickCountdown, 1000);
 
     // ── State ─────────────────────────────────────────────────────────────────
     let me        = localStorage.getItem('kk_user') || null;
@@ -779,12 +945,18 @@
       el.className = 'song-card' + (s.sung ? ' sung' : '');
       el.dataset.id = s.id;
 
-      const liked  = (s.votedBy || []).includes(me);
-      const sl     = singLabel(s.sungWith, s.sungWithWho);
+      const liked    = (s.votedBy || []).includes(me);
+      const voters   = (s.votedBy || []);
+      const sl       = singLabel(s.sungWith, s.sungWithWho);
+      const commCnt  = (s.comments || []).length;
       const coverHtml = s.coverUrl
         ? `<img src="${esc(s.coverUrl)}" alt="" loading="lazy"
               onerror="this.parentElement.innerHTML='<span>${svcEmoji(s.service)}</span>'">`
         : `<span>${svcEmoji(s.service)}</span>`;
+
+      const votersHtml = voters.length
+        ? `<span class="liked-by-popup">${voters.map(n => av(n) + ' ' + n).join(', ')}</span>`
+        : '';
 
       el.innerHTML = `
         <div class="song-cover">${coverHtml}</div>
@@ -792,20 +964,34 @@
           <div class="song-title">${esc(s.title || '—')}</div>
           <div class="song-artist">${esc(s.artist || '')}</div>
           <div class="song-meta">
-            <span class="tag tag-user">${esc(s.addedBy || '')}</span>
+            <span class="tag tag-user"><span style="margin-right:3px">${av(s.addedBy)}</span>${esc(s.addedBy || '')}</span>
             <span class="tag tag-${s.service}">${svcLabel(s.service)}</span>
             ${sl ? `<span class="tag tag-sing">${sl}</span>` : ''}
           </div>
           <div class="song-actions">
-            <button class="act-btn like-btn ${liked ? 'liked' : ''}" data-id="${s.id}">
-              ${liked ? '❤' : '🤍'} ${s.votes || 0}
-            </button>
+            <div class="like-wrap">
+              <button class="act-btn like-btn ${liked ? 'liked' : ''}" data-id="${s.id}">
+                ${liked ? '❤' : '🤍'} ${s.votes || 0}
+              </button>
+              ${votersHtml}
+            </div>
+            <button class="act-btn comm-btn" data-id="${s.id}">💬 ${commCnt || ''}</button>
             ${!s.sung ? `<button class="act-btn sung-btn" data-id="${s.id}">✓ Спели</button>` : ''}
             ${s.url ? `<a class="act-btn" href="${esc(s.url)}" target="_blank" rel="noopener">↗ Открыть</a>` : ''}
           </div>
         </div>
         ${!s.sung ? '<div class="drag-handle" title="Переместить">⠿⠿</div>' : ''}
       `;
+
+      // show liked-by on hover
+      const likeWrap = el.querySelector('.like-wrap');
+      const popup    = el.querySelector('.liked-by-popup');
+      if (popup) {
+        popup.style.display = 'none';
+        likeWrap.addEventListener('mouseenter', () => { popup.style.display = 'block'; });
+        likeWrap.addEventListener('mouseleave', () => { popup.style.display = 'none'; });
+      }
+
       return el;
     }
 
@@ -886,12 +1072,98 @@
       await updateDoc(doc(db, 'songs', id), { sung: true });
     }
 
+    // ── Comments ──────────────────────────────────────────────────────────────
+    let commSongId = null;
+
+    function openComments(id) {
+      commSongId = id;
+      const s = songs.find(x => x.id === id);
+      if (!s) return;
+      $('commTitle').textContent = `💬 ${s.title}`;
+      renderComments(s.comments || []);
+      $('commInput').value = '';
+      $('commOverlay').classList.remove('hidden');
+      setTimeout(() => $('commInput').focus(), 80);
+    }
+
+    function renderComments(comments) {
+      const list = $('commList');
+      if (!comments.length) {
+        list.innerHTML = '<div class="comment-empty">Комментариев пока нет — будь первым!</div>';
+        return;
+      }
+      list.innerHTML = comments
+        .sort((a, b) => a.ts - b.ts)
+        .map(c => `
+          <div class="comment-item">
+            <div class="avatar">${av(c.author)}</div>
+            <div class="comment-body">
+              <div class="comment-author">${esc(c.author)}</div>
+              <div class="comment-text">${esc(c.text)}</div>
+            </div>
+          </div>
+        `).join('');
+      list.scrollTop = list.scrollHeight;
+    }
+
+    async function sendComment() {
+      if (!me || !commSongId) return;
+      const text = $('commInput').value.trim();
+      if (!text) return;
+      $('commInput').value = '';
+      await updateDoc(doc(db, 'songs', commSongId), {
+        comments: arrayUnion({ author: me, text, ts: Date.now() })
+      });
+    }
+
+    $('commClose').addEventListener('click', () => $('commOverlay').classList.add('hidden'));
+    $('commOverlay').addEventListener('click', e => {
+      if (e.target === $('commOverlay')) $('commOverlay').classList.add('hidden');
+    });
+    $('commSend').addEventListener('click', sendComment);
+    $('commInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendComment(); });
+
+    // ── Randomizer ────────────────────────────────────────────────────────────
+    function openRandom() {
+      const active = songs.filter(s => !s.sung);
+      if (!active.length) { $('randBody').innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted)">Нет песен в очереди!</div>'; $('randOverlay').classList.remove('hidden'); return; }
+      $('randOverlay').classList.remove('hidden');
+
+      let count = 0;
+      const total = 18;
+      let timer = setInterval(() => {
+        const r = active[Math.floor(Math.random() * active.length)];
+        $('randBody').innerHTML = `
+          <div class="rand-emoji-big rand-spin">${av(r.addedBy)}</div>
+          <div class="rand-title-big">${esc(r.title)}</div>
+          <div class="rand-artist-big">${esc(r.artist)}</div>
+        `;
+        count++;
+        if (count >= total) {
+          clearInterval(timer);
+          const final = active[Math.floor(Math.random() * active.length)];
+          $('randBody').innerHTML = `
+            <div class="rand-emoji-big">${av(final.addedBy)}</div>
+            <div class="rand-title-big">${esc(final.title)}</div>
+            <div class="rand-artist-big">${esc(final.artist)}</div>
+            <div class="rand-added">добавил(а) ${esc(final.addedBy)}</div>
+          `;
+        }
+      }, 90);
+    }
+
+    $('randBtn').addEventListener('click', openRandom);
+    $('randClose').addEventListener('click', () => $('randOverlay').classList.add('hidden'));
+    $('randOverlay').addEventListener('click', e => { if (e.target === $('randOverlay')) $('randOverlay').classList.add('hidden'); });
+
     // ── Event delegation ──────────────────────────────────────────────────────
     document.addEventListener('click', e => {
       const lb = e.target.closest('.like-btn');
       if (lb) { toggleVote(lb.dataset.id); return; }
       const sb = e.target.closest('.sung-btn');
       if (sb) { markSung(sb.dataset.id); return; }
+      const cb = e.target.closest('.comm-btn');
+      if (cb) { openComments(cb.dataset.id); return; }
     });
 
     // ── User modal ────────────────────────────────────────────────────────────
@@ -901,11 +1173,11 @@
       USERS.forEach(name => {
         const b = document.createElement('button');
         b.className = 'user-opt';
-        b.textContent = name;
+        b.innerHTML = `<span style="font-size:20px">${av(name)}</span> ${esc(name)}`;
         b.onclick = () => {
           me = name;
           localStorage.setItem('kk_user', name);
-          $('userChip').textContent = name;
+          $('userChip').textContent = av(name) + ' ' + name;
           $('userOverlay').classList.add('hidden');
         };
         g.appendChild(b);
@@ -1047,18 +1319,22 @@
       $('addOverlay').classList.add('hidden');
     });
 
-    // ── Firestore listener ────────────────────────────────────────────────────
-    onSnapshot(col, snap => {
-      songs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      render();
-    });
-
     // ── Init ──────────────────────────────────────────────────────────────────
     buildUserGrid();
     if (me) {
-      $('userChip').textContent = me;
+      $('userChip').textContent = av(me) + ' ' + me;
       $('userOverlay').classList.add('hidden');
     }
+
+    // ── Update comments in real-time when overlay is open ─────────────────────
+    onSnapshot(col, snap => {
+      songs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      render();
+      if (commSongId) {
+        const s = songs.find(x => x.id === commSongId);
+        if (s) renderComments(s.comments || []);
+      }
+    });
   </script>
 </body>
 </html>
