@@ -266,6 +266,7 @@
     }
 
     .act-btn:hover { border-color: var(--accent); color: var(--accent-hover); background: var(--accent-light); }
+    a.act-btn { text-decoration: none; }
     .like-btn.liked { background: #fff0f0; border-color: #f7a7a7; color: #e05454; }
     .sung-btn:hover { background: #f0fbf4; border-color: #7dc99a; color: #3a8c5a; }
 
@@ -800,6 +801,7 @@
               ${liked ? '❤' : '🤍'} ${s.votes || 0}
             </button>
             ${!s.sung ? `<button class="act-btn sung-btn" data-id="${s.id}">✓ Спели</button>` : ''}
+            ${s.url ? `<a class="act-btn" href="${esc(s.url)}" target="_blank" rel="noopener">↗ Открыть</a>` : ''}
           </div>
         </div>
         ${!s.sung ? '<div class="drag-handle" title="Переместить">⠿⠿</div>' : ''}
