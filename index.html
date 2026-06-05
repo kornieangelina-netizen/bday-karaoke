@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>setlist ✦</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --accent: #9bbfd8;
+      --accent-hover: #7dacc9;
+      --accent-light: #e8f2f9;
+      --silver: #b8c4ce;
+      --text: #2a3a4a;
+      --text-soft: #6b7c8d;
+      --text-muted: #a0adb8;
+      --border: #dde6ee;
+      --shadow: rgba(155,191,216,0.18);
+      --shadow-md: rgba(155,191,216,0.32);
+      --r: 12px;
+      --r-sm: 8px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Header ─────────────────────────────────────────────────────── */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 13px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .header-left { display: flex; flex-direction: column; gap: 1px; }
+
+    .header-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 25px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.3px;
+      line-height: 1;
+    }
+
+    .header-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.4px;
+    }
+
+    .user-chip {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-soft);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .user-chip:hover { background: var(--accent-light); border-color: var(--accent); color: var(--text); }
+
+    /* ─── Next up banner ──────────────────────────────────────────────── */
+    .next-up {
+      background: var(--accent);
+      padding: 8px 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      position: sticky;
+      top: 53px;
+      z-index: 99;
+    }
+
+    .next-up.hidden { display: none; }
+
+    .next-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.75);
+      white-space: nowrap;
+    }
+
+    .next-track {
+      font-size: 13px;
+      color: #fff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-style: italic;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 15px;
+    }
+
+    /* ─── Main ───────────────────────────────────────────────────────── */
+    .main {
+      max-width: 620px;
+      margin: 0 auto;
+      padding: 20px 16px 100px;
+    }
+
+    /* ─── Add button ─────────────────────────────────────────────────── */
+    .add-btn {
+      width: 100%;
+      padding: 13px 20px;
+      background: var(--surface);
+      border: 1.5px dashed var(--accent);
+      border-radius: var(--r);
+      color: var(--accent-hover);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 18px;
+      letter-spacing: 0.2px;
+    }
+
+    .add-btn:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      border-style: solid;
+    }
+
+    /* ─── Section title ──────────────────────────────────────────────── */
+    .section-title {
+      font-size: 11px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 10px;
+      margin-top: 24px;
+    }
+
+    /* ─── Song list ──────────────────────────────────────────────────── */
+    .song-list { display: flex; flex-direction: column; gap: 10px; }
+
+    /* ─── Song card ──────────────────────────────────────────────────── */
+    .song-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 13px 14px;
+      box-shadow: 0 2px 10px var(--shadow);
+      display: flex;
+      gap: 11px;
+      align-items: flex-start;
+      transition: box-shadow 0.15s;
+    }
+
+    .song-card:hover { box-shadow: 0 4px 18px var(--shadow-md); }
+    .song-card.sung { opacity: 0.5; background: var(--bg); }
+
+    .song-cover {
+      width: 50px;
+      height: 50px;
+      border-radius: var(--r-sm);
+      flex-shrink: 0;
+      overflow: hidden;
+      background: var(--accent-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .song-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .song-body { flex: 1; min-width: 0; }
+
+    .song-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.3;
+      margin-bottom: 1px;
+    }
+
+    .song-card.sung .song-title { text-decoration: line-through; }
+
+    .song-artist {
+      font-size: 12px;
+      color: var(--text-soft);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 7px;
+    }
+
+    .song-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 9px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .tag-user { background: var(--bg); color: var(--text-soft); border: 1px solid var(--border); }
+    .tag-sing { background: var(--accent-light); color: var(--accent-hover); }
+    .tag-spotify { background: #1DB954; color: #fff; }
+    .tag-apple   { background: #fa233b; color: #fff; }
+    .tag-yandex  { background: #fc3c3c; color: #fff; }
+    .tag-vk      { background: #0077ff; color: #fff; }
+    .tag-other   { background: var(--silver); color: #fff; }
+
+    .song-actions { display: flex; gap: 7px; align-items: center; }
+
+    .act-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: var(--r-sm);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-soft);
+      transition: all 0.15s;
+      font-family: 'Inter', sans-serif;
+      line-height: 1.4;
+    }
+
+    .act-btn:hover { border-color: var(--accent); color: var(--accent-hover); background: var(--accent-light); }
+    .like-btn.liked { background: #fff0f0; border-color: #f7a7a7; color: #e05454; }
+    .sung-btn:hover { background: #f0fbf4; border-color: #7dc99a; color: #3a8c5a; }
+
+    .drag-handle {
+      color: var(--silver);
+      cursor: grab;
+      padding: 4px 3px;
+      font-size: 15px;
+      line-height: 1;
+      user-select: none;
+      margin-top: 2px;
+    }
+
+    .drag-handle:hover { color: var(--text-soft); }
+
+    /* ─── Empty state ────────────────────────────────────────────────── */
+    .empty {
+      text-align: center;
+      padding: 36px 20px;
+      color: var(--text-muted);
+      font-size: 14px;
+      border: 1.5px dashed var(--border);
+      border-radius: var(--r);
+    }
+
+    /* ─── Modal overlay ──────────────────────────────────────────────── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(30,44,58,0.42);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .overlay.hidden { display: none; }
+
+    .modal {
+      background: var(--surface);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 24px 70px rgba(30,44,58,0.22);
+      overflow: hidden;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    /* ─── User pick modal ────────────────────────────────────────────── */
+    .user-body {
+      padding: 32px 24px 28px;
+      text-align: center;
+    }
+
+    .user-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--text);
+    }
+
+    .user-sub { font-size: 14px; color: var(--text-soft); margin-bottom: 26px; }
+
+    .user-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+    .user-opt {
+      padding: 9px 20px;
+      border-radius: 24px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--text);
+      transition: all 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .user-opt:hover { border-color: var(--accent); background: var(--accent); color: #fff; }
+
+    /* ─── Add song modal ─────────────────────────────────────────────── */
+    .modal-head {
+      padding: 18px 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .close-btn {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: var(--bg);
+      border-radius: 50%;
+      cursor: pointer;
+      color: var(--text-soft);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+
+    .close-btn:hover { background: var(--border); }
+
+    .modal-body { padding: 14px 20px 22px; }
+
+    /* ─── Form ───────────────────────────────────────────────────────── */
+    .form-group { margin-bottom: 13px; }
+
+    .form-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .form-input:focus { border-color: var(--accent); }
+    .form-input::placeholder { color: var(--text-muted); }
+
+    .url-row { display: flex; gap: 8px; }
+    .url-row .form-input { flex: 1; }
+
+    .parse-btn {
+      padding: 9px 14px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--r-sm);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+
+    .parse-btn:hover { background: var(--accent-hover); }
+    .parse-btn:disabled { opacity: 0.6; cursor: wait; }
+
+    .parse-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 5px;
+      min-height: 16px;
+    }
+
+    .cover-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 13px;
+      padding: 10px 12px;
+      background: var(--bg);
+      border-radius: var(--r-sm);
+      border: 1px solid var(--border);
+    }
+
+    .cover-thumb {
+      width: 48px;
+      height: 48px;
+      border-radius: 6px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .cover-label { font-size: 12px; color: var(--text-soft); }
+
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .chip {
+      padding: 6px 13px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--text-soft);
+      transition: all 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .chip.active { border-color: var(--accent); background: var(--accent-light); color: var(--accent-hover); }
+    .chip:hover:not(.active) { border-color: var(--silver); }
+
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--text);
+      border: none;
+      border-radius: var(--r);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      margin-top: 4px;
+      transition: opacity 0.15s;
+      letter-spacing: 0.2px;
+    }
+
+    .submit-btn:hover { opacity: 0.82; }
+    .submit-btn:disabled { opacity: 0.45; cursor: default; }
+
+    /* ─── Firebase setup notice ──────────────────────────────────────── */
+    .setup-notice {
+      position: fixed;
+      inset: 0;
+      background: var(--surface);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      text-align: center;
+    }
+
+    .setup-notice h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 30px;
+      margin-bottom: 12px;
+    }
+
+    .setup-notice p { font-size: 14px; color: var(--text-soft); max-width: 360px; line-height: 1.6; margin-bottom: 8px; }
+    .setup-notice code { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+
+    /* ─── Sortable ghost ─────────────────────────────────────────────── */
+    .sortable-ghost { opacity: 0.3; }
+    .sortable-drag { box-shadow: 0 8px 30px var(--shadow-md); }
+
+    /* ─── Mobile ─────────────────────────────────────────────────────── */
+    @media (max-width: 480px) {
+      .header-title { font-size: 22px; }
+      .main { padding: 16px 12px 80px; }
+      .overlay { padding: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Firebase setup notice (shown if config is not filled) -->
+  <div id="setupNotice" class="setup-notice hidden">
+    <h1>setlist ✦</h1>
+    <p>Лика, нужно добавить Firebase конфиг чтобы всё заработало.</p>
+    <p>Открой <code>index.html</code> в редакторе и вставь свои значения <code>apiKey</code>, <code>projectId</code>, <code>appId</code>.</p>
+  </div>
+
+  <!-- User pick overlay -->
+  <div id="userOverlay" class="overlay">
+    <div class="modal">
+      <div class="user-body">
+        <div class="user-title">setlist ✦</div>
+        <div class="user-sub">Привет! Кто ты?</div>
+        <div class="user-grid" id="userGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add song overlay -->
+  <div id="addOverlay" class="overlay hidden">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="modal-title">Добавить песню</div>
+        <button class="close-btn" id="addClose">✕</button>
+      </div>
+      <div class="modal-body">
+
+        <div class="form-group">
+          <label class="form-label">Ссылка</label>
+          <div class="url-row">
+            <input id="fUrl" type="url" class="form-input" placeholder="Spotify, Apple, Яндекс, VK…">
+            <button id="parseBtn" class="parse-btn">Распознать</button>
+          </div>
+          <div id="parseNote" class="parse-note"></div>
+        </div>
+
+        <div id="coverRow" class="cover-row" style="display:none">
+          <img id="coverThumb" class="cover-thumb" src="" alt="">
+          <div class="cover-label">Обложка найдена ✓</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Исполнитель</label>
+          <input id="fArtist" type="text" class="form-input" placeholder="Имя артиста">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Название</label>
+          <input id="fTitle" type="text" class="form-input" placeholder="Название песни">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Сервис</label>
+          <div class="chips" id="serviceChips">
+            <button class="chip" data-svc="spotify">Spotify</button>
+            <button class="chip" data-svc="apple">Apple</button>
+            <button class="chip" data-svc="yandex">Яндекс</button>
+            <button class="chip" data-svc="vk">VK</button>
+            <button class="chip active" data-svc="other">Другое</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Хочу петь</label>
+          <div class="chips" id="singChips" style="margin-bottom:8px">
+            <button class="chip active" data-sing="anyone">Всё равно</button>
+            <button class="chip" data-sing="solo">🎤 Соло</button>
+            <button class="chip" data-sing="group">Со всеми</button>
+            <button class="chip" data-sing="specific">С кем-то</button>
+          </div>
+          <input id="fSingWho" type="text" class="form-input" placeholder="С кем именно?" style="display:none">
+        </div>
+
+        <button id="submitBtn" class="submit-btn">Добавить в сет-лист</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="header-title">setlist ✦</div>
+      <div class="header-sub" id="statsText">Ликин ДР</div>
+    </div>
+    <button class="user-chip" id="userChip">···</button>
+  </header>
+
+  <!-- Next up -->
+  <div id="nextUp" class="next-up hidden">
+    <span class="next-label">Следующая</span>
+    <span id="nextTrack" class="next-track"></span>
+  </div>
+
+  <!-- Content -->
+  <main class="main">
+    <button id="addBtn" class="add-btn">＋ Добавить песню</button>
+    <div id="songList" class="song-list">
+      <div class="empty">Пока пусто — добавь первую песню ↑</div>
+    </div>
+    <div id="sungSection" style="display:none">
+      <div class="section-title">Уже спели</div>
+      <div id="sungList" class="song-list"></div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import {
+      getFirestore, collection, addDoc, onSnapshot,
+      updateDoc, doc, serverTimestamp, writeBatch,
+      increment, arrayUnion, arrayRemove
+    } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import Sortable from 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/+esm';
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ЛИКА: Вставь сюда значения из Firebase Console →
+    //   Project Settings → Your apps → Web → firebaseConfig
+    // ─────────────────────────────────────────────────────────────────────────
+    const firebaseConfig = {
+      apiKey:     "ВСТАВЬ_API_KEY",
+      projectId:  "ВСТАВЬ_PROJECT_ID",
+      appId:      "ВСТАВЬ_APP_ID"
+    };
+    // ─────────────────────────────────────────────────────────────────────────
+
+    if (firebaseConfig.apiKey.startsWith('ВСТАВЬ')) {
+      document.getElementById('setupNotice').classList.remove('hidden');
+      document.getElementById('userOverlay').classList.add('hidden');
+      throw new Error('Firebase config not set');
+    }
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+    const col = collection(db, 'songs');
+
+    // ── Participants ──────────────────────────────────────────────────────────
+    const USERS = ['Лика', 'Ильнур', 'Ксюша', 'Илья', 'Юля', 'Вова', 'Вика'];
+
+    // ── State ─────────────────────────────────────────────────────────────────
+    let me        = localStorage.getItem('kk_user') || null;
+    let songs     = [];
+    let curSvc    = 'other';
+    let curSing   = 'anyone';
+    let curCover  = null;
+    let sortInst  = null;
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+
+    function esc(s) {
+      return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function svcLabel(s)  { return ({spotify:'Spotify',apple:'Apple',yandex:'Яндекс',vk:'VK',other:'♪'})[s]||'♪'; }
+    function svcEmoji(s)  { return ({spotify:'🟢',apple:'🔴',yandex:'🔴',vk:'🔵',other:'🎵'})[s]||'🎵'; }
+
+    function singLabel(sw, who) {
+      if (sw === 'solo')     return '🎤 Соло';
+      if (sw === 'group')    return '🎤 Со всеми';
+      if (sw === 'specific') return `🎤 с ${who||'?'}`;
+      return null;
+    }
+
+    function plural(n, a, b, c) {
+      const m = n % 100, t = n % 10;
+      if (m >= 11 && m <= 14) return `${n} ${c}`;
+      if (t === 1) return `${n} ${a}`;
+      if (t >= 2 && t <= 4) return `${n} ${b}`;
+      return `${n} ${c}`;
+    }
+
+    // ── Service detection ─────────────────────────────────────────────────────
+    function detectSvc(url) {
+      if (!url) return 'other';
+      if (url.includes('open.spotify.com')) return 'spotify';
+      if (url.includes('music.apple.com'))  return 'apple';
+      if (url.includes('music.yandex'))     return 'yandex';
+      if (url.includes('vk.com'))           return 'vk';
+      return 'other';
+    }
+
+    // ── URL parsing ───────────────────────────────────────────────────────────
+    async function parseUrl(url) {
+      const svc = detectSvc(url);
+      const res = { svc, title: '', artist: '', cover: null };
+
+      if (svc === 'spotify') {
+        try {
+          const r = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
+          if (r.ok) {
+            const d = await r.json();
+            res.title  = d.title || '';
+            res.artist = (d.author_name || '').replace(/ • Song$/, '').replace(/ • Spotify$/, '');
+            res.cover  = d.thumbnail_url || null;
+          }
+        } catch(_) {}
+      }
+
+      if (svc === 'apple') {
+        try {
+          const r = await fetch(`https://music.apple.com/oembed?url=${encodeURIComponent(url)}`);
+          if (r.ok) {
+            const d = await r.json();
+            res.title  = d.title || '';
+            res.artist = d.author_name || '';
+            res.cover  = d.thumbnail_url || null;
+          }
+        } catch(_) {}
+      }
+
+      if (svc === 'yandex') {
+        try {
+          const m = url.match(/album\/(\d+)\/track\/(\d+)/);
+          if (m) {
+            const r = await fetch(
+              `https://music.yandex.ru/handlers/track.jsx?track=${m[2]}&album=${m[1]}`
+            );
+            if (r.ok) {
+              const d = await r.json();
+              if (d.track) {
+                res.title  = d.track.title || '';
+                res.artist = (d.track.artists || []).map(a => a.name).join(', ');
+                if (d.track.coverUri) {
+                  res.cover = 'https://' + d.track.coverUri.replace('%%', '200x200');
+                }
+              }
+            }
+          }
+        } catch(_) {}
+      }
+
+      return res;
+    }
+
+    // ── Render card ───────────────────────────────────────────────────────────
+    function makeCard(s) {
+      const el = document.createElement('div');
+      el.className = 'song-card' + (s.sung ? ' sung' : '');
+      el.dataset.id = s.id;
+
+      const liked  = (s.votedBy || []).includes(me);
+      const sl     = singLabel(s.sungWith, s.sungWithWho);
+      const coverHtml = s.coverUrl
+        ? `<img src="${esc(s.coverUrl)}" alt="" loading="lazy"
+              onerror="this.parentElement.innerHTML='<span>${svcEmoji(s.service)}</span>'">`
+        : `<span>${svcEmoji(s.service)}</span>`;
+
+      el.innerHTML = `
+        <div class="song-cover">${coverHtml}</div>
+        <div class="song-body">
+          <div class="song-title">${esc(s.title || '—')}</div>
+          <div class="song-artist">${esc(s.artist || '')}</div>
+          <div class="song-meta">
+            <span class="tag tag-user">${esc(s.addedBy || '')}</span>
+            <span class="tag tag-${s.service}">${svcLabel(s.service)}</span>
+            ${sl ? `<span class="tag tag-sing">${sl}</span>` : ''}
+          </div>
+          <div class="song-actions">
+            <button class="act-btn like-btn ${liked ? 'liked' : ''}" data-id="${s.id}">
+              ${liked ? '❤' : '🤍'} ${s.votes || 0}
+            </button>
+            ${!s.sung ? `<button class="act-btn sung-btn" data-id="${s.id}">✓ Спели</button>` : ''}
+          </div>
+        </div>
+        ${!s.sung ? '<div class="drag-handle" title="Переместить">⠿⠿</div>' : ''}
+      `;
+      return el;
+    }
+
+    // ── Render all ────────────────────────────────────────────────────────────
+    function render() {
+      const active = songs.filter(s => !s.sung).sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999));
+      const sung   = songs.filter(s =>  s.sung).sort((a, b) =>
+        (b.addedAt?.seconds || 0) - (a.addedAt?.seconds || 0));
+
+      // Stats
+      $('statsText').textContent =
+        `Ликин ДР · ${plural(songs.length,'песня','песни','песен')} · ${sung.length} спето`;
+
+      // Next up
+      const nu = $('nextUp');
+      if (active.length > 0) {
+        const f = active[0];
+        $('nextTrack').textContent = `«${f.title}» — ${f.artist}`;
+        nu.classList.remove('hidden');
+      } else {
+        nu.classList.add('hidden');
+      }
+
+      // Active list
+      const sl = $('songList');
+      sl.innerHTML = '';
+      if (active.length === 0) {
+        sl.innerHTML = '<div class="empty">Пока пусто — добавь первую песню ↑</div>';
+      } else {
+        active.forEach(s => sl.appendChild(makeCard(s)));
+      }
+
+      // Sung list
+      const sungSec = $('sungSection');
+      const sungLst = $('sungList');
+      sungLst.innerHTML = '';
+      if (sung.length > 0) {
+        sung.forEach(s => sungLst.appendChild(makeCard(s)));
+        sungSec.style.display = '';
+      } else {
+        sungSec.style.display = 'none';
+      }
+
+      // Sortable
+      if (sortInst) { sortInst.destroy(); sortInst = null; }
+      if (active.length > 0) {
+        sortInst = new Sortable(sl, {
+          handle: '.drag-handle',
+          animation: 150,
+          ghostClass: 'sortable-ghost',
+          dragClass: 'sortable-drag',
+          onEnd: reorder
+        });
+      }
+    }
+
+    // ── Reorder ───────────────────────────────────────────────────────────────
+    async function reorder() {
+      const cards = [...$('songList').querySelectorAll('.song-card')];
+      const batch = writeBatch(db);
+      cards.forEach((c, i) => batch.update(doc(db, 'songs', c.dataset.id), { order: i }));
+      await batch.commit();
+    }
+
+    // ── Vote ─────────────────────────────────────────────────────────────────
+    async function toggleVote(id) {
+      if (!me) return;
+      const s = songs.find(x => x.id === id);
+      if (!s) return;
+      const liked = (s.votedBy || []).includes(me);
+      const ref = doc(db, 'songs', id);
+      if (liked) await updateDoc(ref, { votes: increment(-1), votedBy: arrayRemove(me) });
+      else        await updateDoc(ref, { votes: increment(1),  votedBy: arrayUnion(me) });
+    }
+
+    // ── Mark sung ─────────────────────────────────────────────────────────────
+    async function markSung(id) {
+      await updateDoc(doc(db, 'songs', id), { sung: true });
+    }
+
+    // ── Event delegation ──────────────────────────────────────────────────────
+    document.addEventListener('click', e => {
+      const lb = e.target.closest('.like-btn');
+      if (lb) { toggleVote(lb.dataset.id); return; }
+      const sb = e.target.closest('.sung-btn');
+      if (sb) { markSung(sb.dataset.id); return; }
+    });
+
+    // ── User modal ────────────────────────────────────────────────────────────
+    function buildUserGrid() {
+      const g = $('userGrid');
+      g.innerHTML = '';
+      USERS.forEach(name => {
+        const b = document.createElement('button');
+        b.className = 'user-opt';
+        b.textContent = name;
+        b.onclick = () => {
+          me = name;
+          localStorage.setItem('kk_user', name);
+          $('userChip').textContent = name;
+          $('userOverlay').classList.add('hidden');
+        };
+        g.appendChild(b);
+      });
+    }
+
+    $('userChip').addEventListener('click', () => $('userOverlay').classList.remove('hidden'));
+    // clicking outside modal closes it
+    $('userOverlay').addEventListener('click', e => {
+      if (e.target === $('userOverlay')) $('userOverlay').classList.add('hidden');
+    });
+
+    // ── Add modal helpers ─────────────────────────────────────────────────────
+    function setSvc(s) {
+      curSvc = s;
+      $('serviceChips').querySelectorAll('.chip').forEach(c =>
+        c.classList.toggle('active', c.dataset.svc === s));
+    }
+
+    function setSing(s) {
+      curSing = s;
+      $('singChips').querySelectorAll('.chip').forEach(c =>
+        c.classList.toggle('active', c.dataset.sing === s));
+      $('fSingWho').style.display = s === 'specific' ? 'block' : 'none';
+    }
+
+    function resetForm() {
+      $('fUrl').value = '';
+      $('fArtist').value = '';
+      $('fTitle').value = '';
+      $('fSingWho').value = '';
+      $('parseNote').textContent = '';
+      $('coverRow').style.display = 'none';
+      curCover = null;
+      setSvc('other');
+      setSing('anyone');
+    }
+
+    // Service chips
+    $('serviceChips').addEventListener('click', e => {
+      const c = e.target.closest('.chip[data-svc]');
+      if (c) setSvc(c.dataset.svc);
+    });
+
+    // Sing chips
+    $('singChips').addEventListener('click', e => {
+      const c = e.target.closest('.chip[data-sing]');
+      if (c) setSing(c.dataset.sing);
+    });
+
+    // Auto detect service on URL input
+    $('fUrl').addEventListener('input', e => {
+      const s = detectSvc(e.target.value);
+      if (s !== 'other') setSvc(s);
+    });
+
+    // Parse button
+    $('parseBtn').addEventListener('click', async () => {
+      const url = $('fUrl').value.trim();
+      if (!url) return;
+      const btn = $('parseBtn');
+      btn.disabled = true;
+      btn.textContent = '···';
+      $('parseNote').textContent = 'Ищем…';
+
+      const res = await parseUrl(url);
+
+      btn.disabled = false;
+      btn.textContent = 'Распознать';
+      setSvc(res.svc);
+
+      if (res.title || res.artist) {
+        $('fTitle').value  = res.title;
+        $('fArtist').value = res.artist;
+        $('parseNote').textContent = '✓ Трек найден';
+      } else {
+        $('parseNote').textContent = 'Не удалось — заполни вручную';
+      }
+
+      if (res.cover) {
+        curCover = res.cover;
+        $('coverThumb').src = res.cover;
+        $('coverRow').style.display = 'flex';
+      } else {
+        curCover = null;
+        $('coverRow').style.display = 'none';
+      }
+    });
+
+    // Open add modal
+    function openAdd() {
+      if (!me) { $('userOverlay').classList.remove('hidden'); return; }
+      resetForm();
+      $('addOverlay').classList.remove('hidden');
+      setTimeout(() => $('fUrl').focus(), 80);
+    }
+
+    $('addBtn').addEventListener('click', openAdd);
+    $('addClose').addEventListener('click', () => $('addOverlay').classList.add('hidden'));
+    $('addOverlay').addEventListener('click', e => {
+      if (e.target === $('addOverlay')) $('addOverlay').classList.add('hidden');
+    });
+
+    // Submit
+    $('submitBtn').addEventListener('click', async () => {
+      const title  = $('fTitle').value.trim();
+      const artist = $('fArtist').value.trim();
+      const url    = $('fUrl').value.trim();
+
+      if (!title && !artist) {
+        $('parseNote').textContent = 'Укажи хотя бы название или исполнителя';
+        return;
+      }
+
+      const btn = $('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Добавляю…';
+
+      const maxOrder = songs.filter(s => !s.sung).reduce((m, s) => Math.max(m, s.order ?? 0), -1);
+
+      await addDoc(col, {
+        title:       title  || '—',
+        artist:      artist || '',
+        service:     curSvc,
+        url:         url    || '',
+        coverUrl:    curCover,
+        addedBy:     me,
+        addedAt:     serverTimestamp(),
+        votes:       0,
+        votedBy:     [],
+        sung:        false,
+        sungWith:    curSing,
+        sungWithWho: $('fSingWho').value.trim(),
+        order:       maxOrder + 1
+      });
+
+      btn.disabled = false;
+      btn.textContent = 'Добавить в сет-лист';
+      $('addOverlay').classList.add('hidden');
+    });
+
+    // ── Firestore listener ────────────────────────────────────────────────────
+    onSnapshot(col, snap => {
+      songs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      render();
+    });
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    buildUserGrid();
+    if (me) {
+      $('userChip').textContent = me;
+      $('userOverlay').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
