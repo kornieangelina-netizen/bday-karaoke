@@ -635,6 +635,97 @@
     .rand-artist-big { font-size: 14px; color: var(--text-soft); margin-bottom: 6px; }
     .rand-added { font-size: 12px; color: var(--text-muted); margin-top: 10px; }
 
+    /* ─── Search bar ────────────────────────────────────────────────── */
+    .search-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .search-input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--r);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .search-input:focus { border-color: var(--accent); }
+    .search-input::placeholder { color: var(--text-muted); }
+
+    .shuffle-btn {
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--r);
+      background: var(--surface);
+      color: var(--text-soft);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: 'Inter', sans-serif;
+      white-space: nowrap;
+    }
+
+    .shuffle-btn:hover { border-color: var(--accent); color: var(--accent-hover); background: var(--accent-light); }
+
+    /* ─── Card menu ──────────────────────────────────────────────────── */
+    .card-menu-btn {
+      background: none;
+      border: none;
+      color: var(--silver);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .card-menu-btn:hover { color: var(--text-soft); background: var(--bg); }
+
+    .card-menu-wrap { position: relative; }
+
+    .card-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      box-shadow: 0 6px 20px var(--shadow-md);
+      z-index: 60;
+      min-width: 130px;
+      overflow: hidden;
+    }
+
+    .card-dropdown.hidden { display: none; }
+
+    .dd-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      font-size: 13px;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.1s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .dd-item:hover { background: var(--bg); }
+    .dd-item.danger { color: #e05454; }
+    .dd-item.danger:hover { background: #fff0f0; }
+
     /* ─── Sortable ghost ─────────────────────────────────────────────── */
     .sortable-ghost { opacity: 0.3; }
     .sortable-drag { box-shadow: 0 8px 30px var(--shadow-md); }
@@ -702,7 +793,7 @@
   <div id="addOverlay" class="overlay hidden">
     <div class="modal">
       <div class="modal-head">
-        <div class="modal-title">Добавить песню</div>
+        <div class="modal-title" id="addModalTitle">Добавить песню</div>
         <button class="close-btn" id="addClose">✕</button>
       </div>
       <div class="modal-body">
@@ -780,6 +871,10 @@
   <!-- Content -->
   <main class="main">
     <button id="addBtn" class="add-btn">＋ Добавить песню</button>
+    <div class="search-row">
+      <input id="searchInput" class="search-input" type="text" placeholder="🔍 Найти по названию или исполнителю…">
+      <button id="shuffleBtn" class="shuffle-btn">🔀 Перемешать</button>
+    </div>
     <div id="songList" class="song-list">
       <div class="empty">Пока пусто — добавь первую песню ↑</div>
     </div>
@@ -794,7 +889,7 @@
     import {
       getFirestore, collection, addDoc, onSnapshot,
       updateDoc, doc, serverTimestamp, writeBatch,
-      increment, arrayUnion, arrayRemove
+      increment, arrayUnion, arrayRemove, deleteDoc
     } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
     import Sortable from 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/+esm';
 
@@ -857,6 +952,8 @@
     let curSing   = 'anyone';
     let curCover  = null;
     let sortInst  = null;
+    let editingId = null;   // null = add mode, id = edit mode
+    let searchQ   = '';
 
     // ── More helpers ──────────────────────────────────────────────────────────
     function svcLabel(s)  { return ({spotify:'Spotify',apple:'Apple',yandex:'Яндекс',vk:'VK',other:'♪'})[s]||'♪'; }
@@ -981,7 +1078,14 @@
             ${s.url ? `<a class="act-btn" href="${esc(s.url)}" target="_blank" rel="noopener">↗ Открыть</a>` : ''}
           </div>
         </div>
-        ${!s.sung ? '<div class="drag-handle" title="Переместить">⠿⠿</div>' : ''}
+        <div class="card-menu-wrap">
+          ${!s.sung ? '<div class="drag-handle" title="Переместить">⠿⠿</div>' : ''}
+          <button class="card-menu-btn" data-id="${s.id}" title="Действия">⋯</button>
+          <div class="card-dropdown hidden" id="dd-${s.id}">
+            <button class="dd-item edit-item" data-id="${s.id}">✏️ Редактировать</button>
+            <button class="dd-item danger delete-item" data-id="${s.id}">🗑️ Удалить</button>
+          </div>
+        </div>
       `;
 
       // show liked-by on hover
@@ -1072,6 +1176,58 @@
     async function markSung(id) {
       await updateDoc(doc(db, 'songs', id), { sung: true });
     }
+
+    // ── Delete & Edit ─────────────────────────────────────────────────────────
+    async function deleteSong(id) {
+      if (!confirm('Удалить песню?')) return;
+      await deleteDoc(doc(db, 'songs', id));
+    }
+
+    function openEdit(id) {
+      const s = songs.find(x => x.id === id);
+      if (!s) return;
+      editingId = id;
+      resetForm();
+      $('fTitle').value  = s.title  || '';
+      $('fArtist').value = s.artist || '';
+      $('fUrl').value    = s.url    || '';
+      setSvc(s.service || 'other');
+      setSing(s.sungWith || 'anyone');
+      $('fSingWho').value = s.sungWithWho || '';
+      if (s.coverUrl) {
+        curCover = s.coverUrl;
+        $('coverThumb').src = s.coverUrl;
+        $('coverRow').style.display = 'flex';
+      }
+      $('addModalTitle').textContent = 'Редактировать';
+      $('submitBtn').textContent     = 'Сохранить';
+      $('addOverlay').classList.remove('hidden');
+    }
+
+    // ── Shuffle ───────────────────────────────────────────────────────────────
+    async function shuffleOrder() {
+      const active = songs.filter(s => !s.sung);
+      if (active.length < 2) return;
+      const ids = active.map(s => s.id).sort(() => Math.random() - 0.5);
+      const batch = writeBatch(db);
+      ids.forEach((id, i) => batch.update(doc(db, 'songs', id), { order: i }));
+      await batch.commit();
+    }
+
+    $('shuffleBtn').addEventListener('click', shuffleOrder);
+
+    // ── Search ────────────────────────────────────────────────────────────────
+    $('searchInput').addEventListener('input', e => {
+      searchQ = e.target.value.toLowerCase().trim();
+      document.querySelectorAll('#songList .song-card, #sungList .song-card').forEach(card => {
+        const id   = card.dataset.id;
+        const s    = songs.find(x => x.id === id);
+        const match = !searchQ ||
+          (s?.title  || '').toLowerCase().includes(searchQ) ||
+          (s?.artist || '').toLowerCase().includes(searchQ);
+        card.style.display = match ? '' : 'none';
+      });
+    });
 
     // ── Comments ──────────────────────────────────────────────────────────────
     let commSongId = null;
@@ -1165,6 +1321,27 @@
       if (sb) { markSung(sb.dataset.id); return; }
       const cb = e.target.closest('.comm-btn');
       if (cb) { openComments(cb.dataset.id); return; }
+
+      // card menu toggle
+      const mb = e.target.closest('.card-menu-btn');
+      if (mb) {
+        const dd = document.getElementById('dd-' + mb.dataset.id);
+        if (dd) { dd.classList.toggle('hidden'); }
+        return;
+      }
+
+      // edit
+      const eb = e.target.closest('.edit-item');
+      if (eb) { document.getElementById('dd-' + eb.dataset.id)?.classList.add('hidden'); openEdit(eb.dataset.id); return; }
+
+      // delete
+      const db2 = e.target.closest('.delete-item');
+      if (db2) { document.getElementById('dd-' + db2.dataset.id)?.classList.add('hidden'); deleteSong(db2.dataset.id); return; }
+
+      // close any open dropdown if clicking outside
+      if (!e.target.closest('.card-menu-wrap')) {
+        document.querySelectorAll('.card-dropdown').forEach(d => d.classList.add('hidden'));
+      }
     });
 
     // ── User modal ────────────────────────────────────────────────────────────
@@ -1271,7 +1448,10 @@
     // Open add modal
     function openAdd() {
       if (!me) { $('userOverlay').classList.remove('hidden'); return; }
+      editingId = null;
       resetForm();
+      $('addModalTitle').textContent = 'Добавить песню';
+      $('submitBtn').textContent     = 'Добавить в сет-лист';
       $('addOverlay').classList.remove('hidden');
       setTimeout(() => $('fUrl').focus(), 80);
     }
@@ -1297,23 +1477,35 @@
       btn.disabled = true;
       btn.textContent = 'Добавляю…';
 
-      const maxOrder = songs.filter(s => !s.sung).reduce((m, s) => Math.max(m, s.order ?? 0), -1);
-
-      await addDoc(col, {
-        title:       title  || '—',
-        artist:      artist || '',
-        service:     curSvc,
-        url:         url    || '',
-        coverUrl:    curCover,
-        addedBy:     me,
-        addedAt:     serverTimestamp(),
-        votes:       0,
-        votedBy:     [],
-        sung:        false,
-        sungWith:    curSing,
-        sungWithWho: $('fSingWho').value.trim(),
-        order:       maxOrder + 1
-      });
+      if (editingId) {
+        await updateDoc(doc(db, 'songs', editingId), {
+          title:       title  || '—',
+          artist:      artist || '',
+          service:     curSvc,
+          url:         url    || '',
+          coverUrl:    curCover,
+          sungWith:    curSing,
+          sungWithWho: $('fSingWho').value.trim()
+        });
+        editingId = null;
+      } else {
+        const maxOrder = songs.filter(s => !s.sung).reduce((m, s) => Math.max(m, s.order ?? 0), -1);
+        await addDoc(col, {
+          title:       title  || '—',
+          artist:      artist || '',
+          service:     curSvc,
+          url:         url    || '',
+          coverUrl:    curCover,
+          addedBy:     me,
+          addedAt:     serverTimestamp(),
+          votes:       0,
+          votedBy:     [],
+          sung:        false,
+          sungWith:    curSing,
+          sungWithWho: $('fSingWho').value.trim(),
+          order:       maxOrder + 1
+        });
+      }
 
       btn.disabled = false;
       btn.textContent = 'Добавить в сет-лист';
